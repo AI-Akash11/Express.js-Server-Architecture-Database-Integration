@@ -48,7 +48,7 @@ app.get("/", (req: Request, res: Response) => {
   });
 });
 
-app.post("/", async (req: Request, res: Response) => {
+app.post("/api/users", async (req: Request, res: Response) => {
   // console.log(req.body);
 
   const { name, email, password, age } = req.body;
@@ -65,16 +65,73 @@ app.post("/", async (req: Request, res: Response) => {
     // console.log(result)
 
     res.status(201).json({
+      success: true,
+
       message: "User created successfully!",
       data: result.rows[0],
     });
   } catch (error: any) {
-        res.status(500).json({
+    res.status(500).json({
+      success: false,
+
       message: error.message,
       error,
     });
   }
 });
+
+app.get("/api/users", async (req: Request, res: Response) => {
+  try {
+    const result = await pool.query(`
+     SELECT * FROM users 
+      `);
+
+    res.status(200).json({
+      success: true,
+      message: "users retrived successfully",
+      data: result.rows,
+    });
+  } catch (error: any) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+      error,
+    });
+  }
+});
+
+app.get('/api/users/:id', async (req: Request,res: Response)=> {
+ const id = req.params.id;
+//  console.log(id)
+
+try {
+  const result = await pool.query(`
+    SELECT * FROM users WHERE id=$1
+    `,
+  [id]
+  )
+
+  if(result.rows.length === 0) {
+          res.status(500).json({
+      success: false,
+      message: "user not found",
+      data: {},
+    });
+  }
+
+      res.status(200).json({
+      success: true,
+      message: "user retrived successfully",
+      data: result.rows[0],
+    });
+} catch (error: any) {
+      res.status(500).json({
+      success: false,
+      message: error.message,
+      error,
+    });
+}
+})
 
 app.listen(port, () => {
   console.log(`Example app listening on port ${port}`);
